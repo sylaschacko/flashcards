@@ -1,6 +1,7 @@
 "use client";
 import FlashcardList from "../components/FlashcardList";
 import { Grid, Container, Typography, Divider } from "@mui/material";
+import NavBar from "../components/NavBar";
 
 export default function Home() {
   const flashcards = [
@@ -14,6 +15,7 @@ export default function Home() {
       maxWidth="xl"
       sx={{ height: "100vh", backgroundColor: "#0A082B", margin: 0 }}
     >
+      <NavBar />
       <FlashcardList flashcards={flashcards} />
       <Container sx={{ mt: 4 }}>
         {flashcards.map((flashcard, index) => (

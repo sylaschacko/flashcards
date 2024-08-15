@@ -2,13 +2,47 @@
 import FlashcardList from "../components/FlashcardList";
 import { Grid, Container, Typography, Divider } from "@mui/material";
 import NavBar from "../components/NavBar";
+import { AppAuth } from "../context/AppContext";
 
 export default function Home() {
-  const flashcards = [
-    { question: "What is the capital of France?", answer: "Paris" },
-    { question: "What is 2 + 2?", answer: "4" },
-    { question: 'Who wrote "To Kill a Mockingbird"?', answer: "Harper Lee" },
-  ];
+  const { flashcards } = AppAuth();
+
+  // const saveFlashcards = async () => {
+  //   if (!setName.trim()) {
+  //     alert("Please enter a name for your flashcard set.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const userDocRef = doc(collection(db, "users"), user.id);
+  //     const userDocSnap = await getDoc(userDocRef);
+
+  //     const batch = writeBatch(db);
+
+  //     if (userDocSnap.exists()) {
+  //       const userData = userDocSnap.data();
+  //       const updatedSets = [
+  //         ...(userData.flashcardSets || []),
+  //         { name: setName },
+  //       ];
+  //       batch.update(userDocRef, { flashcardSets: updatedSets });
+  //     } else {
+  //       batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
+  //     }
+
+  //     const setDocRef = doc(collection(userDocRef, "flashcardSets"), setName);
+  //     batch.set(setDocRef, { flashcards });
+
+  //     await batch.commit();
+
+  //     alert("Flashcards saved successfully!");
+  //     handleCloseDialog();
+  //     setSetName("");
+  //   } catch (error) {
+  //     console.error("Error saving flashcards:", error);
+  //     alert("An error occurred while saving flashcards. Please try again.");
+  //   }
+  // };
 
   return (
     <Container

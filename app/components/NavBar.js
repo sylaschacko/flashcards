@@ -41,7 +41,7 @@ const NavBar = () => {
               aria-label="add"
               sx={{ mr: 2, bgcolor: "#3D56F0", color: "#fff", borderRadius: 2 }}
               onClick={() => {
-                router.push("/");
+                router.push("/generate");
               }}
             >
               <AddIcon />

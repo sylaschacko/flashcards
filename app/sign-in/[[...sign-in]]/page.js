@@ -22,7 +22,7 @@ const fontTheme = createTheme({
 export default function SignInPage() {
   return (
     <ThemeProvider theme={fontTheme}>
-      <Box sx={{ backgroundColor: "#0A082B" }}>
+      <Box sx={{ backgroundColor: "#0A082B", height: "100vh" }}>
         <AppBar position="static" sx={{ backgroundColor: "#00004d" }}>
           <Toolbar>
             <Typography variant="h6" sx={{ flexGrow: 1 }}>

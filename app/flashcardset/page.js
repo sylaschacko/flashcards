@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -10,32 +10,72 @@ import {
   Chip,
 } from "@mui/material";
 import NavBar from "../components/NavBar";
+import { AppAuth } from "../context/AppContext";
 import { useRouter } from "next/navigation";
+import { doc, collection, setDoc, getDocs } from "firebase/firestore";
+import { useUser } from "@clerk/nextjs";
+import { db } from "../../firebase.js";
 
 const FlashcardSet = () => {
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { flashcards, setFlashcards } = AppAuth();
   const router = useRouter();
+  const [flashcardSets, setFlashcardSets] = useState([]);
 
-  const handleCardClick = () => {
-    router.push("/flashcard"); // Navigate to the desired route
+  // useEffect(() => {
+  //   async function getFlashcards() {
+  //     if (!user) return;
+  //     const docRef = doc(collection(db, "users"), user.id);
+  //     const docSnap = await getDoc(docRef);
+  //     if (docSnap.exists()) {
+  //       const collections = docSnap.data().flashcards || [];
+  //       setFlashcards(collections);
+  //     } else {
+  //       await setDoc(docRef, { flashcards: [] });
+  //     }
+  //   }
+  //   getFlashcards();
+  // }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function getFlashcardSets() {
+      const userDocRef = collection(db, "users", user.id, "flashcardSets"); // Reference to flashcard sets collections
+      const querySnapshot = await getDocs(userDocRef);
+
+      const sets = querySnapshot.docs.map((doc) => ({
+        id: doc.id, // Set ID (name of the collection in Firebase)
+        ...doc.data(), // Spread the data, including flashcards
+      }));
+      console.log(sets);
+      setFlashcardSets(sets);
+    }
+
+    getFlashcardSets();
+  }, [user]);
+
+  const handleCardClick = (id) => {
+    router.push(`/flashcard?id=${id}`);
   };
   // Example data
-  const flashcardSets = [
-    {
-      title: "U.S. State Capitals",
-      terms: 5,
-      username: "rlarner-quiz",
-    },
-    {
-      title: "U.S. State Capitals",
-      terms: 5,
-      username: "rlarner-quiz",
-    },
-    {
-      title: "U.S. State Capitals",
-      terms: 5,
-      username: "rlarner-quiz",
-    },
-  ];
+  // const flashcardSets = [
+  //   {
+  //     title: "U.S. State Capitals",
+  //     terms: 5,
+  //     username: "rlarner-quiz",
+  //   },
+  //   {
+  //     title: "U.S. State Capitals",
+  //     terms: 5,
+  //     username: "rlarner-quiz",
+  //   },
+  //   {
+  //     title: "U.S. State Capitals",
+  //     terms: 5,
+  //     username: "rlarner-quiz",
+  //   },
+  // ];
 
   return (
     <Box sx={{ bgcolor: "#0A082B", height: "100vh" }}>
@@ -53,13 +93,26 @@ const FlashcardSet = () => {
                   borderRadius: "15px",
                   cursor: "pointer",
                 }}
-                onClick={handleCardClick}
+                onClick={() => handleCardClick(set.id)}
               >
                 <CardContent>
                   <Typography variant="h6" sx={{ color: "#fff" }}>
-                    {set.title}
+                    {set.name || set.id}{" "}
+                    {/* Display set name or fallback to the collection ID */}
                   </Typography>
-                  {set.terms && (
+                  {set.flashcards && (
+                    <Chip
+                      label={`${set.flashcards.length} terms`}
+                      sx={{
+                        marginTop: "10px",
+                        backgroundColor: "#5962D9",
+                        color: "#fff",
+                        fontSize: "14px",
+                        borderRadius: "10px",
+                      }}
+                    />
+                  )}
+                  {set.description && (
                     <Chip
                       label={`${set.terms} terms`}
                       sx={{
@@ -71,32 +124,20 @@ const FlashcardSet = () => {
                       }}
                     />
                   )}
-                  {set.description && (
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "#B3B6E1", marginTop: "10px" }}
-                    >
-                      {set.description}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: "15px",
+                    }}
+                  >
+                    <Avatar sx={{ bgcolor: "#03A9F4", width: 24, height: 24 }}>
+                      {user.firstName?.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Typography sx={{ color: "#B3B6E1", marginLeft: "10px" }}>
+                      {user.username || user.email} {/* Display the username */}
                     </Typography>
-                  )}
-                  {set.username && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginTop: "15px",
-                      }}
-                    >
-                      <Avatar
-                        sx={{ bgcolor: "#03A9F4", width: 24, height: 24 }}
-                      >
-                        {set.username.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Typography sx={{ color: "#B3B6E1", marginLeft: "10px" }}>
-                        {set.username}
-                      </Typography>
-                    </Box>
-                  )}
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>

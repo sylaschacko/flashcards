@@ -17,6 +17,7 @@ import { raleway } from "./fonts";
 import LandingPageCarousel from "./components/LandingPageCarousel";
 import Head from "next/head";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const fontTheme = createTheme({
   typography: {
@@ -25,9 +26,10 @@ const fontTheme = createTheme({
 });
 
 export default function Home() {
+  const router = useRouter();
   return (
     <ThemeProvider theme={fontTheme}>
-      <Box sx={{ height: "100vh", backgroundColor: "#0A082B" }}>
+      <Box sx={{ height: "100vh", backgroundColor: "#0A082B", color: "white" }}>
         <Head>
           <title>Wizlet</title>
           <meta name="description" content="Create flashcard from your text" />
@@ -66,7 +68,14 @@ export default function Home() {
           <Typography variant="h5" sx={{ mb: 2 }}>
             The easiest way to make flashcards from your queries.
           </Typography>
-          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            onClick={() => {
+              router.push("/flashcardset");
+            }}
+          >
             Get Started
           </Button>
         </Box>

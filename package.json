@@ -26,5 +26,11 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.5",
     "typescript": "5.5.4"
+  },
+  "overrides": {
+    "eslint": {
+      "@humanwhocodes/config-array": "npm:@eslint/config-array",
+      "file-entry-cache": "^9.0.0"
+    }
   }
 }

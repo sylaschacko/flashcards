@@ -1,11 +1,88 @@
 "use client";
+import React, { useState, useEffect } from "react";
 import FlashcardList from "../components/FlashcardList";
-import { Grid, Container, Typography, Divider } from "@mui/material";
+import {
+  Grid,
+  Container,
+  Typography,
+  Divider,
+  Button,
+  Box,
+} from "@mui/material";
 import NavBar from "../components/NavBar";
 import { AppAuth } from "../context/AppContext";
+import { db } from "../../firebase.js";
+import SaveDialog from "../components/Dialog";
+import { useUser } from "@clerk/nextjs";
+import {
+  doc,
+  collection,
+  setDoc,
+  getDoc,
+  writeBatch,
+  query,
+} from "firebase/firestore";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
-  const { flashcards } = AppAuth();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { flashcards, setFlashcards } = AppAuth();
+  const [setName, setSetName] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  console.log(flashcards);
+
+  const handleOpenDialog = () => setDialogOpen(true);
+  const handleCloseDialog = () => setDialogOpen(false);
+
+  const searchParams = useSearchParams();
+  const setId = searchParams.get("id");
+  console.log(setId);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function getFlashcards() {
+      try {
+        if (setId) {
+          const flashcardSetDocRef = doc(
+            db,
+            "users",
+            user.id,
+            "flashcardSets",
+            setId
+          );
+
+          const flashcardSetDocSnap = await getDoc(flashcardSetDocRef);
+          if (flashcardSetDocSnap.exists()) {
+            const data = flashcardSetDocSnap.data();
+            console.log("Document Data:", data);
+
+            const flashcardsArray = data.flashcards || [];
+            setFlashcards(flashcardsArray);
+          } else {
+            console.log("No such document!");
+            setError("Flashcard set not found.");
+          }
+        } else {
+          // Use generated flashcards if no setId is provided
+          setFlashcards(flashcards);
+        }
+      } catch (err) {
+        console.error("Error fetching flashcards:", err);
+        setError("An error occurred while fetching flashcards.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getFlashcards();
+  }, [user, setId, flashcards, setFlashcards]);
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>{error}</Typography>;
 
   // const saveFlashcards = async () => {
   //   if (!setName.trim()) {
@@ -20,20 +97,26 @@ export default function Home() {
   //     const batch = writeBatch(db);
 
   //     if (userDocSnap.exists()) {
-  //       const userData = userDocSnap.data();
-  //       const updatedSets = [
-  //         ...(userData.flashcardSets || []),
-  //         { name: setName },
-  //       ];
-  //       batch.update(userDocRef, { flashcardSets: updatedSets });
+  //       const collections = userDocSnap.data().flashcards || [];
+  //       if (collections.find((f) => f.name === setName)) {
+  //         alert("Flashcard collection with the same name already exists.");
+  //         return;
+  //       } else {
+  //         collections.push({ setName });
+  //         batch.set(userDocRef, { flashcards: collections }, { merge: true });
+  //       }
   //     } else {
-  //       batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
+  //       batch.set(userDocRef, { flashcards: [{ setName }] });
   //     }
 
-  //     const setDocRef = doc(collection(userDocRef, "flashcardSets"), setName);
-  //     batch.set(setDocRef, { flashcards });
+  //     const colRef = collection(userDocRef, setName);
+  //     flashcards.forEach((flashcard) => {
+  //       const cardDocRef = doc(colRef);
+  //       batch.set(cardDocRef, flashcard);
+  //     });
 
   //     await batch.commit();
+  //     handleCloseDialog();
 
   //     alert("Flashcards saved successfully!");
   //     handleCloseDialog();
@@ -44,14 +127,68 @@ export default function Home() {
   //   }
   // };
 
+  const saveFlashcards = async () => {
+    if (!setName.trim()) {
+      alert("Please enter a name for your flashcard set.");
+      return;
+    }
+
+    try {
+      const userDocRef = doc(collection(db, "users"), user.id);
+      const userDocSnap = await getDoc(userDocRef);
+
+      const batch = writeBatch(db);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        const updatedSets = [
+          ...(userData.flashcardSets || []),
+          { name: setName },
+        ];
+        batch.update(userDocRef, { flashcardSets: updatedSets });
+      } else {
+        batch.set(userDocRef, { flashcardSets: [{ name: setName }] });
+      }
+
+      const setDocRef = doc(collection(userDocRef, "flashcardSets"), setName);
+      batch.set(setDocRef, { flashcards });
+
+      await batch.commit();
+
+      alert("Flashcards saved successfully!");
+      handleCloseDialog();
+      setSetName("");
+    } catch (error) {
+      console.error("Error saving flashcards:", error);
+      alert("An error occurred while saving flashcards. Please try again.");
+    }
+  };
+
   return (
-    <Container
-      maxWidth="xl"
-      sx={{ height: "100vh", backgroundColor: "#0A082B", margin: 0 }}
+    <Box
+      sx={{
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "#0A082B",
+        margin: 0,
+        alignItems: "center",
+      }}
     >
       <NavBar />
       <FlashcardList flashcards={flashcards} />
-      <Container sx={{ mt: 4 }}>
+      <Box sx={{ textAlign: "center" }}>
+        <Button variant="contained" onClick={handleOpenDialog}>
+          Save Flashcards
+        </Button>
+      </Box>
+      <SaveDialog
+        dialogOpen={dialogOpen}
+        handleCloseDialog={handleCloseDialog}
+        setName={setName}
+        setSetName={setSetName}
+        saveFlashcards={saveFlashcards}
+      />
+      <Container sx={{ mt: 4, paddingBottom: "50px", flexGrow: 1 }}>
         {flashcards.map((flashcard, index) => (
           <Grid
             container
@@ -90,6 +227,6 @@ export default function Home() {
           </Grid>
         ))}
       </Container>
-    </Container>
+    </Box>
   );
 }

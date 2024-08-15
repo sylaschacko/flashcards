@@ -10,7 +10,7 @@ import {
   createTheme,
   ThemeProvider,
 } from "@mui/material";
-import { SignUp } from "@clerk/nextjs";
+import { SignIn } from "@clerk/nextjs";
 import { raleway } from "@/app/fonts";
 
 const fontTheme = createTheme({
@@ -45,7 +45,7 @@ export default function SignInPage() {
           <Typography variant="h4" component="h1" gutterBottom>
             Sign In to Your Account
           </Typography>
-          <SignUp />
+          <SignIn />
         </Box>
       </Box>
     </ThemeProvider>

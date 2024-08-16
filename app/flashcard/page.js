@@ -8,6 +8,8 @@ import {
   Divider,
   Button,
   Box,
+  createTheme,
+  ThemeProvider,
 } from "@mui/material";
 import NavBar from "../components/NavBar";
 import { AppAuth } from "../context/AppContext";
@@ -23,6 +25,13 @@ import {
   query,
 } from "firebase/firestore";
 import { useSearchParams } from "next/navigation";
+import { raleway } from "../fonts";
+
+const fontTheme = createTheme({
+  typography: {
+    fontFamily: raleway.style.fontFamily,
+  },
+});
 
 export default function Home() {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -84,49 +93,6 @@ export default function Home() {
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography>{error}</Typography>;
 
-  // const saveFlashcards = async () => {
-  //   if (!setName.trim()) {
-  //     alert("Please enter a name for your flashcard set.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const userDocRef = doc(collection(db, "users"), user.id);
-  //     const userDocSnap = await getDoc(userDocRef);
-
-  //     const batch = writeBatch(db);
-
-  //     if (userDocSnap.exists()) {
-  //       const collections = userDocSnap.data().flashcards || [];
-  //       if (collections.find((f) => f.name === setName)) {
-  //         alert("Flashcard collection with the same name already exists.");
-  //         return;
-  //       } else {
-  //         collections.push({ setName });
-  //         batch.set(userDocRef, { flashcards: collections }, { merge: true });
-  //       }
-  //     } else {
-  //       batch.set(userDocRef, { flashcards: [{ setName }] });
-  //     }
-
-  //     const colRef = collection(userDocRef, setName);
-  //     flashcards.forEach((flashcard) => {
-  //       const cardDocRef = doc(colRef);
-  //       batch.set(cardDocRef, flashcard);
-  //     });
-
-  //     await batch.commit();
-  //     handleCloseDialog();
-
-  //     alert("Flashcards saved successfully!");
-  //     handleCloseDialog();
-  //     setSetName("");
-  //   } catch (error) {
-  //     console.error("Error saving flashcards:", error);
-  //     alert("An error occurred while saving flashcards. Please try again.");
-  //   }
-  // };
-
   const saveFlashcards = async () => {
     if (!setName.trim()) {
       alert("Please enter a name for your flashcard set.");
@@ -165,68 +131,72 @@ export default function Home() {
   };
 
   return (
-    <Box
-      sx={{
-        height: "100vh",
-        width: "100vw",
-        backgroundColor: "#0A082B",
-        margin: 0,
-        alignItems: "center",
-      }}
-    >
-      <NavBar />
-      <FlashcardList flashcards={flashcards} />
-      <Box sx={{ textAlign: "center" }}>
-        <Button variant="contained" onClick={handleOpenDialog}>
-          Save Flashcards
-        </Button>
-      </Box>
-      <SaveDialog
-        dialogOpen={dialogOpen}
-        handleCloseDialog={handleCloseDialog}
-        setName={setName}
-        setSetName={setSetName}
-        saveFlashcards={saveFlashcards}
-      />
-      <Container sx={{ mt: 4, paddingBottom: "50px", flexGrow: 1 }}>
-        {flashcards.map((flashcard, index) => (
-          <Grid
-            container
-            key={index}
-            alignItems="center"
-            direction="row"
-            sx={{
-              mb: 2,
-              padding: 2,
-              backgroundColor: "#303754",
-              borderRadius: 2,
-              color: "white",
-            }}
-          >
-            <Grid item xs={5}>
-              <Typography variant="h7" sx={{ color: "#fff" }}>
-                {flashcard.question}
-              </Typography>
-            </Grid>
+    <ThemeProvider theme={fontTheme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          width: "100vw",
+          backgroundColor: "#0A082B",
+          margin: 0,
+          alignItems: "center",
+        }}
+      >
+        <NavBar />
+        <FlashcardList flashcards={flashcards} />
+        <Box sx={{ textAlign: "center" }}>
+          {!setId ? (
+            <Button variant="contained" onClick={handleOpenDialog}>
+              Save Flashcards
+            </Button>
+          ) : null}
+        </Box>
+        <SaveDialog
+          dialogOpen={dialogOpen}
+          handleCloseDialog={handleCloseDialog}
+          setName={setName}
+          setSetName={setSetName}
+          saveFlashcards={saveFlashcards}
+        />
+        <Container sx={{ mt: 4, paddingBottom: "50px", flexGrow: 1 }}>
+          {flashcards.map((flashcard, index) => (
             <Grid
-              item
-              xs={1}
-              sx={{ display: "flex", justifyContent: "center" }}
+              container
+              key={index}
+              alignItems="center"
+              direction="row"
+              sx={{
+                mb: 2,
+                padding: 2,
+                backgroundColor: "#303754",
+                borderRadius: 2,
+                color: "white",
+              }}
             >
-              <Divider
-                flexItem
-                orientation="vertical"
-                sx={{ bgcolor: "#666", height: "100%" }}
-              />
+              <Grid item xs={5}>
+                <Typography variant="h7" sx={{ color: "#fff" }}>
+                  {flashcard.question}
+                </Typography>
+              </Grid>
+              <Grid
+                item
+                xs={1}
+                sx={{ display: "flex", justifyContent: "center" }}
+              >
+                <Divider
+                  flexItem
+                  orientation="vertical"
+                  sx={{ bgcolor: "#666", height: "100%" }}
+                />
+              </Grid>
+              <Grid item xs={5}>
+                <Typography variant="h7" sx={{ color: "#fff" }}>
+                  {flashcard.answer}
+                </Typography>
+              </Grid>
             </Grid>
-            <Grid item xs={5}>
-              <Typography variant="h7" sx={{ color: "#fff" }}>
-                {flashcard.answer}
-              </Typography>
-            </Grid>
-          </Grid>
-        ))}
-      </Container>
-    </Box>
+          ))}
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }

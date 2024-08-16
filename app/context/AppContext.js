@@ -1,19 +1,13 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 
 const AppContext = createContext(null);
 
 export const AppProvider = ({ children }) => {
-  // const [flashcards, setFlashcards] = useState(() => {
-  //   // Load flashcards from localStorage when the component mounts
-  //   const storedFlashcards = localStorage.getItem("flashcards");
-  //   return storedFlashcards ? JSON.parse(storedFlashcards) : {};
-  // });
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [currentUser, setCurrentUser] = useState(user);
 
-  // // Whenever flashcards change, save them to localStorage
-  // useEffect(() => {
-  //   localStorage.setItem("flashcards", JSON.stringify(flashcards));
-  // }, [flashcards]);
   const [flashcards, setFlashcards] = useState(() => {
     // Check if we are in the browser environment
     if (typeof window !== "undefined") {
@@ -35,6 +29,8 @@ export const AppProvider = ({ children }) => {
       value={{
         flashcards,
         setFlashcards,
+        currentUser,
+        setCurrentUser,
       }}
     >
       {children}

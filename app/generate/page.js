@@ -1,119 +1,164 @@
 "use client";
-
 import { useState } from "react";
-import { Container, TextField, Button, Typography, Box } from "@mui/material";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  createTheme,
+  ThemeProvider,
+  IconButton,
+} from "@mui/material";
+import { Close } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { AppAuth } from "../context/AppContext";
 import { useUser } from "@clerk/nextjs";
+import { raleway } from "../fonts";
+import LoadingPage from "../components/LoadingPage";
+
+const fontTheme = createTheme({
+  typography: {
+    fontFamily: raleway.style.fontFamily,
+  },
+});
 
 export default function Generate() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const [loading, setLoading] = useState(false);
   const { setFlashcards } = AppAuth();
   const [text, setText] = useState("");
   const router = useRouter();
-  const flashcards = [
-    { question: "What is the capital of France?", answer: "Paris" },
-    { question: "What is 2 + 2?", answer: "4" },
-    { question: 'Who wrote "To Kill a Mockingbird"?', answer: "Harper Lee" },
-  ];
 
   const handleSubmit = async () => {
-    // if (!text.trim()) {
-    //   alert("Please enter some text to generate flashcards.");
-    //   return;
-    // }
+    setLoading(true);
+    if (!text.trim()) {
+      alert("Please enter some text to generate flashcards.");
+      return;
+    }
 
-    // try {
-    //   const response = await fetch("/api/generate", {
-    //     method: "POST",
-    //     body: text,
-    //   });
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: text.trim() }),
+      });
 
-    //   if (!response.ok) {
-    //     throw new Error("Failed to generate flashcards");
-    //   }
+      if (!response.ok) {
+        throw new Error("Failed to generate flashcards");
+      }
 
-    //   const data = await response.json();
-    //   setFlashcards(data);
-    //   router.push("/flashcard");
-    // } catch (error) {
-    //   console.error("Error generating flashcards:", error);
-    //   alert("An error occurred while generating flashcards. Please try again.");
-    // }
-    setFlashcards(flashcards);
-    router.push("/flashcard");
+      const data = await response.json();
+      console.log(data);
+      if (Array.isArray(data.flashcards)) {
+        setFlashcards(data.flashcards);
+        setLoading(false);
+        router.push("/flashcard");
+      } else {
+        setLoading(false);
+        throw new Error("Unexpected format for flashcards");
+      }
+      // router.push("/flashcard");
+    } catch (error) {
+      console.error("Error generating flashcards:", error);
+      alert("An error occurred while generating flashcards. Please try again.");
+    }
   };
 
+  const handleClose = () => {
+    router.push("/flashcardset");
+  };
+
+  if (loading) {
+    return <LoadingPage />;
+  }
+
   return (
-    <Container
-      maxWidth="xl"
-      sx={{
-        height: "100vh",
-        backgroundColor: "#0A082B",
-        margin: 0,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        color: "white",
-      }}
-    >
-      <Container maxWidth="md">
-        <Typography variant="h4" component="h1" gutterBottom>
-          Generate Flashcards
-        </Typography>
-        <TextField
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          label="Enter text"
-          fullWidth
-          multiline
-          rows={4}
-          variant="outlined"
+    <ThemeProvider theme={fontTheme}>
+      <Container
+        maxWidth="xl"
+        sx={{
+          height: "100vh",
+          backgroundColor: "#0A082B",
+          margin: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          color: "white",
+          position: "relative",
+        }}
+      >
+        <IconButton
+          aria-label="close"
+          onClick={handleClose} // This should be a function that handles the screen close or redirect
           sx={{
-            mb: 2,
-            backgroundColor: "#303754",
-            borderRadius: "10px",
-            "& .MuiOutlinedInput-root": {
-              // "& fieldset": {
-              //   borderColor: "#303754",
-              // },
-              // "&:hover fieldset": {
-              //   borderColor: "#303754",
-              // },
-              // "&.Mui-focused fieldset": {
-              //   borderColor: "#303754",
-              // },
-              "& input": {
-                color: "white",
-              },
-              "& textarea": {
-                color: "white",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              color: "white",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "white",
-            },
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            color: "white",
           }}
-          InputProps={{
-            style: { color: "white" },
-          }}
-          InputLabelProps={{
-            style: { color: "white" },
-          }}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          fullWidth
         >
-          Generate Flashcards
-        </Button>
+          <Close />
+        </IconButton>
+        <Container maxWidth="md">
+          <Typography variant="h4" component="h1" gutterBottom>
+            Generate Flashcards
+          </Typography>
+          <TextField
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            label="Enter text"
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            sx={{
+              mb: 2,
+              backgroundColor: "#303754",
+              borderRadius: "10px",
+              "& .MuiOutlinedInput-root": {
+                // "& fieldset": {
+                //   borderColor: "#303754",
+                // },
+                // "&:hover fieldset": {
+                //   borderColor: "#303754",
+                // },
+                // "&.Mui-focused fieldset": {
+                //   borderColor: "#303754",
+                // },
+                "& input": {
+                  color: "white",
+                },
+                "& textarea": {
+                  color: "white",
+                },
+              },
+              "& .MuiInputLabel-root": {
+                color: "white",
+              },
+              "& .MuiInputLabel-root.Mui-focused": {
+                color: "white",
+              },
+            }}
+            InputProps={{
+              style: { color: "white" },
+            }}
+            InputLabelProps={{
+              style: { color: "white" },
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            fullWidth
+          >
+            Generate Flashcards
+          </Button>
+        </Container>
       </Container>
-    </Container>
+    </ThemeProvider>
   );
 }

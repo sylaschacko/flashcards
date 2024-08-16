@@ -92,7 +92,7 @@ export default function Generate() {
       >
         <IconButton
           aria-label="close"
-          onClick={handleClose} // This should be a function that handles the screen close or redirect
+          onClick={handleClose}
           sx={{
             position: "absolute",
             top: "20px",
@@ -119,15 +119,6 @@ export default function Generate() {
               backgroundColor: "#303754",
               borderRadius: "10px",
               "& .MuiOutlinedInput-root": {
-                // "& fieldset": {
-                //   borderColor: "#303754",
-                // },
-                // "&:hover fieldset": {
-                //   borderColor: "#303754",
-                // },
-                // "&.Mui-focused fieldset": {
-                //   borderColor: "#303754",
-                // },
                 "& input": {
                   color: "white",
                 },

@@ -226,7 +226,7 @@ export default function Home() {
           </Typography>
           <Typography sx={{ mb: 2 }}>
             Wizlet hopes to help students with their studies by generating
-            flashcards based on students' queries using AI.
+            flashcards based on queries from students using AI.
           </Typography>
           <Typography>© 2024 Wizlet</Typography>
         </Box>
